@@ -40,12 +40,13 @@ export default async (req, res) => {
     let page = await browser.newPage();
     await page.goto(url);
     result = await page.tracing.start({
-        path: 'trace.json',
-        categories: ['devtools.timeline']
+       path: 'trace.json',
+    categories: ['devtools.timeline']
       });
 
-    const stories = await page.$$eval('a.storylink', anchors => { return anchors.map(anchor => anchor.textContent).slice(0, 10) })
+    const stories = await page.$$eval('.media-list .media a', anchors => { return anchors.map(anchor => anchor.href)})
   console.log("stories",stories)
+
   await page.tracing.stop()
   } catch (error) {
     //   return callback(error);
@@ -58,5 +59,6 @@ export default async (req, res) => {
   res.json({
     status: "okay",
     data: result,
+    
   });
 };
