@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import styles from '../styles/Home.module.css'
 
+
 export default  function Home() {
 const [websiteURL, setWebsiteURL] = useState('')
  async function submitWebsiteURL(){
@@ -12,11 +13,13 @@ const [websiteURL, setWebsiteURL] = useState('')
        'Content-Type': 'application/json'
      },
      body: JSON.stringify({
-       url:websiteURL
+       url:"https://bbc.com"
      })
    }).then((res)=>res.json())
-
+// console.log(res)
  }
+
+
  
   return (
     <div className={styles.container}>
