@@ -1,12 +1,8 @@
 import chromium from "chrome-aws-lambda";
 import * as cron from "node-cron";
-import { useState } from 'react'
 import { useSrapperContext } from "../../context/state";
 
-const test = () => {
-    const [click, setClick] = useState(0)
 
-}
 
 async function getBrowserInstance() {
   const executablePath = await chromium.executablePath;

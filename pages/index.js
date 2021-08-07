@@ -30,6 +30,7 @@ const [websiteURL, setWebsiteURL] = useState('')
       </Head>
 
       <div className={styles.inputArea}>
+        <a href={"https://google.com"}></a>
 				<input
 					type="text"
 					value={websiteURL}
