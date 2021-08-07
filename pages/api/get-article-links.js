@@ -57,10 +57,11 @@ export default async  function handler(req, res) {
       });
       console.log("stories", stories);
 
-     
-    //   setLinks(stories)
-    //   console.log("links",links)
-
+     const writejsonFile = require("write-json-file");
+     (async() =>{
+         await writejsonFile("stories.json", stories);
+     })();
+    
       await page.tracing.stop();
     } catch (error) {
       //   return callback(error);
