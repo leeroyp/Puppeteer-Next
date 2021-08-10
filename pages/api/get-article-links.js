@@ -1,16 +1,15 @@
 import chromium from "chrome-aws-lambda";
 import * as cron from "node-cron";
-import AWS from 'aws-sdk'
-
-// AKIAVTQG4TVWSAABHGVO
-// PS9m296V1W4zLM8YYy7LsmJYyZ4LcPq7p6B
-// leefirstbuck
+require("dotenv").config();
+import AWS from "aws-sdk";
 
 const S3 = new AWS.S3({
-  credentials:{
-  
-  }
-})
+  signatureVersion: "v4",
+  credentials: {
+    accessKeyId: "",
+    secretAccessKey: "",
+  },
+});
 
 async function getBrowserInstance() {
   const executablePath = await chromium.executablePath;
@@ -32,83 +31,76 @@ async function getBrowserInstance() {
   });
 }
 
+export default async function handler(req, res) {
+  const url = "https://bbc.com";
 
-export default async  function handler(req, res) {
+  //perfrom URL validation
+  if (!url || !url.trim()) {
+    res.json({
+      status: "error",
+      error: "Enter a valid URL",
+    });
+    return;
+  }
 
-    const url = "https://bbc.com";
+  let result = null;
+  let browser = null;
 
-    //perfrom URL validation
-    if (!url || !url.trim()) {
+  try {
+    browser = await getBrowserInstance();
+    let page = await browser.newPage();
+    await page.goto(url);
+    result = await page.tracing.start({
+      path: "trace.json",
+      categories: ["devtools.timeline"],
+    });
+
+    const stories = await page.$$eval(".media-list .media a", (anchors) => {
+      return anchors.map((anchor) => anchor.href).slice(0, 10);
+    });
+    console.log("stories", stories);
+
+    const fileName = "uploaded_on_" + Date.now() + ".json";
+    const params = {
+      Bucket: "aws-daily-defi",
+      Key: fileName,
+      Body: JSON.stringify(stories),
+      ContentType: "application/json",
+    };
+
+    S3.upload(params, (error, data) => {
+      console.log(error, data);
+      if (error) {
+        return res.json({
+          status: "error",
+          error: error.message || "Something went wrong",
+        });
+      }
+
+      const params = {
+        Bucket: "aws-daily-defi",
+        Key: fileName,
+        Expires: 600,
+      };
+
+      const signedURL = S3.getSignedUrl("getObject", params);
+
       res.json({
-        status: "error",
-        error: "Enter a valid URL",
+        status: "ok",
+        data: signedURL,
       });
-      return;
+    });
+
+    await page.tracing.stop();
+  } catch (error) {
+    //   return callback(error);
+  } finally {
+    if (browser !== null) {
+      await browser.close();
     }
+  }
 
-    let result = null;
-    let browser = null;
+  //   });
+}
 
-    try {
-      browser = await getBrowserInstance();
-      let page = await browser.newPage();
-      await page.goto(url);
-      result = await page.tracing.start({
-        path: "trace.json",
-        categories: ["devtools.timeline"],
-      });
-
-      const stories = await page.$$eval(".media-list .media a", (anchors) => 
-      {
-        return anchors.map((anchor) => anchor.href).slice(0, 10);
-      });
-      console.log("stories", stories);
-
-      const fileName = 'uploaded_on_'+Date.now() +'.json'
-      const params = { 
-        Bucket:'leefirstbuck',
-        Key:fileName,
-        Body: JSON.stringify(stories),
-        ContentType: "application/json"
-      }
-
-      S3.upload(params,(error, data)=>{
-        console.log(error, data)
-        if (error){
-        return  res.json({
-            status:'error',
-            error: error.message || 'Something went wrong'
-          })
-        }
-
-        const params = { 
-          Bucket:'leefirstbuck',
-          Key:fileName,
-          Expires: 60
-        }
- 
-        const signedURL = S3.getSignedUrl('getObject', params)
-        res.json({
-          status:'ok',
-          data: signedURL
-        })
-      })
-
-    //  const writejsonFile = require("write-json-file");
-    //  (async() =>{
-    //      await writejsonFile("stories.json", stories);
-    //  })();
-    
-      await page.tracing.stop();
-    } catch (error) {
-      //   return callback(error);
-    } finally {
-      if (browser !== null) {
-        await browser.close();
-      }
-    }
-
-//   });
-};
-
-// cron.schedule('5 * * * * *', handler)
+// cron.schedule("5 * * * * *", handler);

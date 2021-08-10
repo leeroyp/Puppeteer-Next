@@ -1,10 +1,9 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
-// import storiesFile from "../stories.json";
 
 export default function Home() {
-  const [websiteURL, setWebsiteURL] = useState("");
+  const [aws, setAws] = useState("");
   const [links, setLinks] = useState([]);
 
   async function submitWebsiteURL() {
@@ -17,11 +16,22 @@ export default function Home() {
         url: "https://bbc.com",
       }),
     }).then((res) => res.json());
-    // setLinks(storiesFile);
+    setAws(data.data);
+    console.log(data.data);
   }
+
+  const getAllLinks = () => {
+    fetch(aws)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setLinks(data);
+      });
+  };
 
   useEffect(() => {
     submitWebsiteURL();
+    getAllLinks();
   });
 
   return (
@@ -32,15 +42,14 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div>
-        {/* {links.map((link, index) => {
+        Please click on link below :
+        {links.map((link, index) => {
           return (
             <div key={index}>
-              <p>{link}</p>
+              <a href={link}>{link}</a>
             </div>
           );
-        })} */}
-
-        Hello
+        })}
       </div>
     </div>
   );
