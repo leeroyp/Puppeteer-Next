@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
-import storiesFile from "../stories.json";
+// import storiesFile from "../stories.json";
 
 export default function Home() {
   const [websiteURL, setWebsiteURL] = useState("");
@@ -17,7 +17,7 @@ export default function Home() {
         url: "https://bbc.com",
       }),
     }).then((res) => res.json());
-    setLinks(storiesFile);
+    // setLinks(storiesFile);
   }
 
   useEffect(() => {
@@ -32,13 +32,15 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div>
-        {links.map((link, index) => {
+        {/* {links.map((link, index) => {
           return (
             <div key={index}>
               <p>{link}</p>
             </div>
           );
-        })}
+        })} */}
+
+        Hello
       </div>
     </div>
   );

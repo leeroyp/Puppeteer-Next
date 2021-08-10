@@ -1,8 +1,16 @@
 import chromium from "chrome-aws-lambda";
 import * as cron from "node-cron";
-import { useSrapperContext } from "../../context/state";
+import AWS from 'aws-sdk'
 
+// AKIAVTQG4TVWSAABHGVO
+// PS9m296V1W4zLM8YYy7LsmJYyZ4LcPq7p6B
+// leefirstbuck
 
+const S3 = new AWS.S3({
+  credentials:{
+  
+  }
+})
 
 async function getBrowserInstance() {
   const executablePath = await chromium.executablePath;
@@ -26,9 +34,7 @@ async function getBrowserInstance() {
 
 
 export default async  function handler(req, res) {
-//   cron.schedule("5 * * * * *", async () => {
-    // const { links, setLinks } = useSrapperContext();
-    
+
     const url = "https://bbc.com";
 
     //perfrom URL validation
@@ -52,15 +58,46 @@ export default async  function handler(req, res) {
         categories: ["devtools.timeline"],
       });
 
-      const stories = await page.$$eval(".media-list .media a", (anchors) => {
+      const stories = await page.$$eval(".media-list .media a", (anchors) => 
+      {
         return anchors.map((anchor) => anchor.href).slice(0, 10);
       });
       console.log("stories", stories);
 
-     const writejsonFile = require("write-json-file");
-     (async() =>{
-         await writejsonFile("stories.json", stories);
-     })();
+      const fileName = 'uploaded_on_'+Date.now() +'.json'
+      const params = { 
+        Bucket:'leefirstbuck',
+        Key:fileName,
+        Body: JSON.stringify(stories),
+        ContentType: "application/json"
+      }
+
+      S3.upload(params,(error, data)=>{
+        console.log(error, data)
+        if (error){
+        return  res.json({
+            status:'error',
+            error: error.message || 'Something went wrong'
+          })
+        }
+
+        const params = { 
+          Bucket:'leefirstbuck',
+          Key:fileName,
+          Expires: 60
+        }
+ 
+        const signedURL = S3.getSignedUrl('getObject', params)
+        res.json({
+          status:'ok',
+          data: signedURL
+        })
+      })
+
+    //  const writejsonFile = require("write-json-file");
+    //  (async() =>{
+    //      await writejsonFile("stories.json", stories);
+    //  })();
     
       await page.tracing.stop();
     } catch (error) {
@@ -71,11 +108,7 @@ export default async  function handler(req, res) {
       }
     }
 
-    res.json({
-      status: "okay",
-      data: result,
-    });
 //   });
 };
 
-cron.schedule('5 * * * * *', handler)
+// cron.schedule('5 * * * * *', handler)

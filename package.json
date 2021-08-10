@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "aws-sdk": "^2.964.0",
     "chrome-aws-lambda": "^10.1.0",
     "next": "11.0.1",
     "node-cron": "^3.0.0",
