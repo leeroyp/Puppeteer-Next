@@ -1,13 +1,12 @@
 import chromium from "chrome-aws-lambda";
 import * as cron from "node-cron";
-require("dotenv").config();
 import AWS from "aws-sdk";
 
 const S3 = new AWS.S3({
   signatureVersion: "v4",
   credentials: {
-    accessKeyId: "",
-    secretAccessKey: "",
+    accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY,
+    secretAccessKey: process.env.REACT_APP_AWS_SECRET_KEY,
   },
 });
 
